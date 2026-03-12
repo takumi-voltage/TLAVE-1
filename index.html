@@ -607,29 +607,73 @@ body.en span[data-lang="ja"]{display:none}
   <div class="footer-bottom">© 2025 株式会社TLAVE. All Rights Reserved. | Kawaguchi, Saitama, Japan</div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-function initReveal(){
-  var allRv=[];
-  document.querySelectorAll('.rv,.rv-left,.rv-right,.rv-scale').forEach(function(el){allRv.push(el);});
-  function tick(){
-    var wh=window.innerHeight||document.documentElement.clientHeight;
-    for(var i=allRv.length-1;i>=0;i--){
-      var el=allRv[i];
-      var rect=el.getBoundingClientRect();
-      if(rect.top<wh-48){el.classList.add('show');allRv.splice(i,1);}
+<script>
+// ============================================================
+// REVEAL アニメーション — scroll & load 両対応
+// ============================================================
+var allRv = [];
+
+function checkReveal(){
+  var wh = window.innerHeight || document.documentElement.clientHeight;
+  for(var i = allRv.length - 1; i >= 0; i--){
+    var rect = allRv[i].getBoundingClientRect();
+    if(rect.top < wh - 40){
+      allRv[i].classList.add('show');
+      allRv.splice(i, 1);
     }
-    if(allRv.length>0)requestAnimationFrame(tick);
   }
-  tick();
+}
+
+function initReveal(){
+  document.querySelectorAll('.rv,.rv-left,.rv-right,.rv-scale').forEach(function(el){
+    allRv.push(el);
+  });
+  checkReveal();
+  window.addEventListener('scroll', checkReveal, {passive:true});
+  // 定期チェック（iOS Safari・GitHub Pages対策）
+  var timer = setInterval(function(){
+    checkReveal();
+    if(allRv.length === 0) clearInterval(timer);
+  }, 200);
 }
 
 function tickHeader(){
-  var hdr=document.getElementById('hdr');
-  hdr.classList.toggle('scrolled',(window.scrollY||window.pageYOffset)>60);
-  requestAnimationFrame(tickHeader);
+  var hdr = document.getElementById('hdr');
+  var onScroll = function(){
+    hdr.classList.toggle('scrolled', (window.scrollY || window.pageYOffset) > 60);
+  };
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
 }
 
 function setLang(l){
-  document.body.classList.toggle('en',l==='en');
-  document.querySelector('.lang-btn.active').classList.remove('active');
-  document.querySelector(l==='ja'?'.lang-btn:first-child':'#btnEn').classList.add('activ
+  document.body.classList.toggle('en', l==='en');
+  document.querySelectorAll('.lang-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelector(l==='ja' ? '.lang-btn:first-child' : '#btnEn').classList.add('active');
+  try{ localStorage.setItem('tlave-lang', l); }catch(e){}
+}
+
+function toggleFaq(btn){
+  var item = btn.closest('.faq-item');
+  var isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(function(el){ el.classList.remove('open'); });
+  if(!isOpen) item.classList.add('open');
+}
+
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', function(){
+    initReveal();
+    tickHeader();
+  });
+} else {
+  initReveal();
+  tickHeader();
+}
+
+try{
+  var saved = localStorage.getItem('tlave-lang');
+  if(saved) setLang(saved);
+}catch(e){}
+</script>
+</body>
+</html>
